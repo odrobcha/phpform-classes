@@ -10,8 +10,6 @@ declare(strict_types=1);
 session_start();
 
 $order = $_GET['order'] ?? 'drinks';
-$deliveryDate = date('m/d/Y h:i a', time()+ (7 * 24 * 60 * 60));
-$deliveryTime = $_POST['deliveryTime'] ?? date('d/m/Y h:i a', time()+ (7 * 24 * 60 * 60));
 
 $drinks = [
     ['name' => 'Fanta', 'price' => 2.5],
@@ -22,7 +20,7 @@ $drinks = [
     ['name' => 'Irish Coffee', 'price' => 6],
     ['name' => 'Water', 'price' => 3],
 ];
-
+$orderMessage = "";
 $food = [
     ['name' => 'Apple', 'price' => 2.5],
     ['name' => 'Watter melon', 'price' => 2.5],
@@ -71,13 +69,45 @@ class Order
      * @var array
      */
     private array $products;
-    private float $deliveryTime;
-    private float $totalPrice = 0;
-    public function __construct($person, $products, $deliveryTime)
+    private bool $fastDelivery;
+    public function __construct($person, $products, $fastDelivery)
     {
         $this->customer=$person;
         $this->products=$products;
-        $this->deliveryTime=$deliveryTime;
+        $this->fastDelivery=$fastDelivery;
+    }
+    public function getProducts(): array
+    {
+        return $this->products;
+    }
+
+    public function setProducts($products) :array
+    {
+        $this->products = $products;
+    }
+
+    public function calculateTotalPrice()
+    {
+        $totalPrice = 0;
+        foreach($this->products as $productNumber => $product) {
+            $totalPrice +=$this->products[$productNumber]['price'];
+        }
+        if ($this->fastDelivery){
+            $totalPrice +=2;
+        }
+        return $totalPrice;
+
+    }
+
+    public function getDeliveryTime()
+    {
+        if ($this->fastDelivery){
+            $deliveryTime = date('m/d/Y h:i a', time()+ (2 * 24 * 60 * 60));
+
+        } else {
+            $deliveryTime = date('m/d/Y h:i a', time()+ (7 * 24 * 60 * 60));
+        };
+        return $deliveryTime;
     }
 }
 
@@ -89,7 +119,7 @@ class Person
     public function __construct(string $email, stdClass $address)
     {
         $this->email=$email;
-        $this->address = $address;
+       // $this->address = $address;
 
     }
 
@@ -108,6 +138,22 @@ class Person
     {
         $this->email = $email;
     }
+
+    /**
+     * @return stdClass
+     */
+    public function getAddress(): stdClass
+    {
+        return $this->address;
+    }
+
+    /**
+     * @param stdClass $address
+     */
+    public function setAddress(stdClass $address): void
+    {
+        $this->address = $address;
+    }
 }
 
 class Request{
@@ -117,7 +163,7 @@ class Request{
     private stdClass $products;
     private bool $fastDelivery=false;
     private array $errors=[];
-    private array $validatedFormData = [];
+
 
     public function __construct($input){
         $this->input=$input;
@@ -193,139 +239,38 @@ class Request{
     {
         return !empty($this->errors);
     }
-
-    public function calculateTotalPrice()
-    {
-            $totalPrice = 0;
-            foreach($this->products as $productNumber => $product) {
-                $totalPrice +=$this->products[$productNumber]['price'];
-            }
-            if ($this->input['deliveryTime'] != NULL){
-                $totalPrice +=2;
-            }
-            return $totalPrice;
-
-    }
-
-    public function getDeliveryTime()
-    {
-        if ($this->input['deliveryTime'] != NULL){
-            $deliveryTime = date('m/d/Y h:i a', time()+ (2 * 24 * 60 * 60));
-
-        } else {
-            $deliveryTime = date('m/d/Y h:i a', time()+ (7 * 24 * 60 * 60));
-        };
-        return $deliveryTime;
-    }
-
 }
 
-function totalValue ($productsList, &$deliveryTime){
-    $chosenProduct = $_POST['products'];
-    $totalPrice = 0;
-    foreach($chosenProduct as $productNumber => $product) {
-        $totalPrice +=$productsList[$productNumber]['price'];
-    };
-    if ($_POST['deliveryTime'] != NULL){
-        $deliveryTime = date('m/d/Y h:i a', time()+ (2 * 24 * 60 * 60));
-        $totalPrice += 2;
-    };
-    return $totalPrice;
-};
 
-function validate(): array
-{
-    $errors = [];
-    if (!filter_var($_POST['email'], FILTER_VALIDATE_EMAIL)) {
-        $_POST['email'] = '';
-        array_push($errors, 'Please, check your email address.');
-    }
-    if ($_POST['street'] == ''){
-        $_POST['street'] = '';
-        array_push($errors, 'Street field can not be empty.');
-    }
-    if ($_POST['city'] == ''){
-        $_POST['city'] = '';
-        array_push($errors, 'City field can not be empty.');
-    }
-    if (($_POST['streetnumber'] == '') || !(is_numeric(($_POST['streetnumber'])))){
-        $_POST['streetnumber'] = '';
-        array_push($errors, 'Street number field can not be empty and has to be a number.');
-    }
-    if (!(is_numeric(($_POST['zipcode'])))){
-        $_POST['zipcode'] = '';
-        array_push($errors, 'Zip code field can not be empty and has to be a number.');
-     }
 
-    if (count($_POST['products']) == 0){
-        array_push($errors, 'Please, chose at least one product.');
-    }
-
-    $_SESSION["street"] = $_POST['street'];
-    $_SESSION["city"] = $_POST['city'];
-    $_SESSION["zipcode"] = $_POST['zipcode'];
-    $_SESSION["streetnumber"] = $_POST['streetnumber'];
-
-    return $errors;
-}
-
-function handleForm($productsList, &$deliveryTime): string
-{
-    $invalidFields = validate();
-    if (!empty($invalidFields)) {
-        return '<div class="alert alert-danger">' . implode(" </br> ", $invalidFields) .'</div>';
-    }
-    $chosenProduct = $_POST['products'];
-    $orderList = [];
-    $totalPrice = 0;
-    foreach($chosenProduct as $productNumber => $product) {
-        $totalPrice +=$productsList[$productNumber]['price'];
-        array_push($orderList, $productsList[$productNumber]['name']);
-    }
-
-    if ($_POST['deliveryTime'] != NULL){
-        $deliveryTime = date('d/m/Y h:i a', time()+ (2 * 24 * 60 * 60));;
-        $totalPrice += 2;
-    };
-
-    if(!isset($_COOKIE['price']) && !isset($_COOKIE['orders'])){
-        setcookie("price",  strval($totalPrice), time() + (10 * 365 * 24 * 60 * 60), "/"); //  set a cookie that expires in ten years
-        setcookie("orders",  (implode(" ," , $orderList)), time() + (10 * 365 * 24 * 60 * 60), "/");
-    } else {
-        $newPrice = $_COOKIE['price'] . ',' . $totalPrice . ',';
-        setcookie("price", $newPrice, time() + (10 * 365 * 24 * 60 * 60), "/");
-
-        $newOrder = $_COOKIE['orders'] . ',' . (implode(",", $orderList));
-        setcookie("orders", $newOrder);
-    }
-    $address1 = ['street'=>$_POST['street'], 'streetnumber'=>$_POST['streetnumber'], 'city'=>$_POST['city'], 'zipcode'=>$_POST['zipcode']];
-    $person1 = new Person($_POST['email'], $address1);
-  //  $order1 = new Order($person1, $_POST['products'], $_POST['deliveryTime'], $totalPrice);
-
-    var_dump($person1);
-
-    return ' <div class="alert alert-success"> 
+/*' <div class="alert alert-success">
             Your order is sumbited </br> Your address is: ' .$_POST['street'] . ' ' .$_POST['streetnumber'] . ' ' . ' ' .$_POST['city']
-            .'</br>Your email is: ' .$_POST['email']
-            .'</br> You have chosen: ' .implode(" , ", $orderList)
-            .'</br> The total price is: &euro;' .number_format($totalPrice, 2)
-            .'</br>Estimated delivery time: ' .$deliveryTime 
-            .'</div>';
-}
+.'</br>Your email is: ' .$_POST['email']
+.'</br> You have chosen: ' .implode(" , ", $orderList)
+.'</br> The total price is: &euro;' .number_format($totalPrice, 2)
+.'</br>Estimated delivery time: ' .$deliveryTime
+.'</div>';
 
-$confirmationMessage = "";
-
+ERROR
+ return '<div class="alert alert-danger">' . implode(" </br> ", $invalidFields) .'</div>';
+*/
 if (!empty($_POST)) {
     $request = new Request($_POST);
 
     if($request->validate()){
         $person = new Person($request->data('email'), $request->data('address'));
         $order = new Order($person, $request->data('products'), $request->data('fastDelivery'));
+        $totalPrice = $order->calculateTotalPrice();
+        $deliveryTime =$order->getDeliveryTime();
+        $orderMessage = ' <div class="alert alert-success">
+                          Your order is sumbited </br> Your address is: ' .$person->getAddress()->street . ' ' .$person->getAddress()->streetnumber . ' ' . ' ' .$person->getAddress()->city
+                          .'</br>Your email is: ' .$person->getEmail()
+                        .'</br> You have chosen: ' .implode(" , ", $order->getProducts())
+                        .'</br> The total price is: &euro;' .number_format($order->calculateTotalPrice(), 2)
+                        .'</br>Estimated delivery time: ' .$order->getDeliveryTime()
+                        .'</div>';
 
 
-
-        $totalPrice = $request->calculateTotalPrice();
-        $deliveryTime =$request->getDeliveryTime();
     }
     else{
         $errors = $request->errors();

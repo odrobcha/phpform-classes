@@ -17,7 +17,7 @@
     <h1 class="justify-center">Place your order</h1>
 
         <?php
-           echo $confirmationMessage ?? '';
+           echo $orderMessage ?? '';
         ?>
 
     <?php // Navigation for when you need it ?>
