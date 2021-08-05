@@ -63,6 +63,162 @@ function whatIsHappening() {
 }
 //whatIsHappening();
 
+class Order
+{
+    private Person $customer;
+
+    /**
+     * @var array
+     */
+    private array $products;
+    private float $deliveryTime;
+    private float $totalPrice = 0;
+    public function __construct($person, $products, $deliveryTime)
+    {
+        $this->customer=$person;
+        $this->products=$products;
+        $this->deliveryTime=$deliveryTime;
+    }
+}
+
+class Person
+{
+    private string $email;
+    private stdClass $address;
+
+    public function __construct(string $email, stdClass $address)
+    {
+        $this->email=$email;
+        $this->address = $address;
+
+    }
+
+    /**
+     * @return string
+     */
+    public function getEmail(): string
+    {
+        return $this->email;
+    }
+
+    /**
+     * @param string $email
+     */
+    public function setEmail(string $email): void
+    {
+        $this->email = $email;
+    }
+}
+
+class Request{
+    private array $input;
+    private string $email;
+    private stdClass $address;
+    private stdClass $products;
+    private bool $fastDelivery=false;
+    private array $errors=[];
+    private array $validatedFormData = [];
+
+    public function __construct($input){
+        $this->input=$input;
+        $this->address = new stdClass();
+    }
+
+    public function validate()
+    {
+        if (!filter_var($this->input['email'], FILTER_VALIDATE_EMAIL)) {
+           array_push($this->errors, 'Please, check your email address.');
+        }
+        else{
+            $this->email = $this->input['email'];
+        }
+
+        if ($this->input['street'] == ''){
+            array_push($this->errors, 'Street field can not be empty.');
+        }
+        else{
+            $this->address->street=$this->input['street'];
+        }
+        if ($this->input['city'] == ''){
+            array_push($this->errors, 'City field can not be empty.');
+        }
+        else{
+            $this->address->city=$this->input['city'];
+        }
+        if (($this->input['streetnumber'] == '') || !(is_numeric(($this->input['streetnumber'])))){
+
+            array_push($this->errors, 'Street number field can not be empty and has to be a number.');
+        }
+        else{
+            $this->address->streetnumber=$this->input['streetnumber'];
+        }
+        if (!(is_numeric(($this->input['zipcode'])))){
+            array_push($this->errors, 'Zip code field can not be empty and has to be a number.');
+        }
+        else{
+            $this->address->zipcode=$this->input['zipcode'];
+        }
+
+        if (count($this->input['products']) == 0){
+            array_push($this->errors, 'Please, chose at least one product.');
+        }
+        else{
+            $this->products=$this->input['products'];
+        }
+
+        if ($this->input['deliveryTime'] != NULL){
+            $this->fastDelivery=true;
+        }
+
+        return !$this->hasErrors();
+
+    }
+
+    public function data(?string $param = null)
+    {
+        $data = ['email' => $this->email, 'address' => $this->address, 'products' => $this->products, 'fastDelivery' => $this->fastDelivery];
+        if(!is_null($param) and in_array($param, array_keys($data))) {
+            return $data[$param];
+        }
+
+        return $data;
+    }
+
+    public function errors(): array
+    {
+        return $this->errors;
+    }
+
+    public function hasErrors(): bool
+    {
+        return !empty($this->errors);
+    }
+
+    public function calculateTotalPrice()
+    {
+            $totalPrice = 0;
+            foreach($this->products as $productNumber => $product) {
+                $totalPrice +=$this->products[$productNumber]['price'];
+            }
+            if ($this->input['deliveryTime'] != NULL){
+                $totalPrice +=2;
+            }
+            return $totalPrice;
+
+    }
+
+    public function getDeliveryTime()
+    {
+        if ($this->input['deliveryTime'] != NULL){
+            $deliveryTime = date('m/d/Y h:i a', time()+ (2 * 24 * 60 * 60));
+
+        } else {
+            $deliveryTime = date('m/d/Y h:i a', time()+ (7 * 24 * 60 * 60));
+        };
+        return $deliveryTime;
+    }
+
+}
 
 function totalValue ($productsList, &$deliveryTime){
     $chosenProduct = $_POST['products'];
@@ -142,6 +298,12 @@ function handleForm($productsList, &$deliveryTime): string
         $newOrder = $_COOKIE['orders'] . ',' . (implode(",", $orderList));
         setcookie("orders", $newOrder);
     }
+    $address1 = ['street'=>$_POST['street'], 'streetnumber'=>$_POST['streetnumber'], 'city'=>$_POST['city'], 'zipcode'=>$_POST['zipcode']];
+    $person1 = new Person($_POST['email'], $address1);
+  //  $order1 = new Order($person1, $_POST['products'], $_POST['deliveryTime'], $totalPrice);
+
+    var_dump($person1);
+
     return ' <div class="alert alert-success"> 
             Your order is sumbited </br> Your address is: ' .$_POST['street'] . ' ' .$_POST['streetnumber'] . ' ' . ' ' .$_POST['city']
             .'</br>Your email is: ' .$_POST['email']
@@ -154,7 +316,22 @@ function handleForm($productsList, &$deliveryTime): string
 $confirmationMessage = "";
 
 if (!empty($_POST)) {
-    $confirmationMessage = handleForm(${$order}, $deliveryTime);
+    $request = new Request($_POST);
+
+    if($request->validate()){
+        $person = new Person($request->data('email'), $request->data('address'));
+        $order = new Order($person, $request->data('products'), $request->data('fastDelivery'));
+
+
+
+        $totalPrice = $request->calculateTotalPrice();
+        $deliveryTime =$request->getDeliveryTime();
+    }
+    else{
+        $errors = $request->errors();
+    }
+
+    //$confirmationMessage = handleForm(${$order}, $deliveryTime);
 }
 //setcookie("price",  '', time() + (10 * 365 * 24 * 60 * 60), "/"); //  clean a coockies
 //setcookie("orders",  '', time() + (10 * 365 * 24 * 60 * 60), "/");
