@@ -6,61 +6,65 @@
 // This line makes PHP behave in a more strict way
 declare(strict_types=1);
 
+ini_set('display_errors', '1');
+ini_set('display_startup_errors', '1');
+error_reporting(E_ALL);
+
 // We are going to use session variables so we need to enable sessions
 session_start();
 
-$order = $_GET['order'] ?? 'drinks';
-
-$drinks = [
-    ['name' => 'Fanta', 'price' => 2.5],
-    ['name' => 'Coca Cola', 'price' => 2.5],
-    ['name' => 'Black tea', 'price' => 3],
-    ['name' => 'Coffee', 'price' => 3.5],
-    ['name' => 'Iced Coffee', 'price' => 4],
-    ['name' => 'Irish Coffee', 'price' => 6],
-    ['name' => 'Water', 'price' => 3],
-];
 $orderMessage = "";
-$food = [
-    ['name' => 'Apple', 'price' => 2.5],
-    ['name' => 'Watter melon', 'price' => 2.5],
-    ['name' => 'Orange', 'price' => 3],
-    ['name' => 'Black Berries', 'price' => 3.5],
-    ['name' => 'Pear', 'price' => 4],
-    ['name' => 'Lemon', 'price' => 6],
-    ['name' => 'Peach', 'price' => 2],
-];
-
 if(!empty($_GET)){
     foreach ($_GET as $key=>$get){
-        if(!in_array($key, ['order'])){ //to send only allowed keys in $_GET
+        if(!in_array($key, ['orderlist'])){ //to send only allowed keys in $_GET
             unset($_GET[$key]);
         }
     }
 
-    if(!in_array($_GET['order'], ['food', 'drinks'])){  //to send only allowed values in 'order'
-        unset($_GET['order']);
+    if(!in_array($_GET['orderlist'], ['food', 'drinks'])){  //to send only allowed values in 'order'
+        unset($_GET['orderlist']);
     }
 }
 
 
 // Use this function when you need to need an overview of these variables
-function whatIsHappening() {
-    echo '<h2>$_GET</h2>';
+class Products
+{
+    public static function food(){
+        return $food = [
+            ['name' => 'Apple', 'price' => 2.5],
+            ['name' => 'Watter melon', 'price' => 2.5],
+            ['name' => 'Orange', 'price' => 3],
+            ['name' => 'Black Berries', 'price' => 3.5],
+            ['name' => 'Pear', 'price' => 4],
+            ['name' => 'Lemon', 'price' => 6],
+            ['name' => 'Peach', 'price' => 2],
+        ];
 
-    var_dump($_GET);
-    echo '<h2>$_POST</h2>';
-    echo('<pre>');
-    var_dump($_POST);
-    echo ('</pre>');
+    }
+    public static function drinks(){
+        return $drinks = [
+            ['name' => 'Fanta', 'price' => 2.5],
+            ['name' => 'Coca Cola', 'price' => 2.5],
+            ['name' => 'Black tea', 'price' => 3],
+            ['name' => 'Coffee', 'price' => 3.5],
+            ['name' => 'Iced Coffee', 'price' => 4],
+            ['name' => 'Irish Coffee', 'price' => 6],
+            ['name' => 'Water', 'price' => 3],
+        ];
+    }
 
-    echo '<h2>$_COOKIE</h2>';
-    var_dump($_COOKIE);
-    echo '<h2>$_SESSION</h2>';
-    var_dump($_SESSION);
 }
-//whatIsHappening();
+$productslist = new Products();
 
+$orderlist =  $productslist->drinks();
+
+if($_GET['orderlist'] == 'food'){
+    $orderlist= $productslist->food();
+}
+if($_GET['orderlist'] == 'drinks'){
+    $orderlist= $productslist->drinks();
+}
 class Order
 {
     private Person $customer;
@@ -70,11 +74,15 @@ class Order
      */
     private array $products;
     private bool $fastDelivery;
-    public function __construct($person, $products, $fastDelivery)
+    private array $orderlist;
+
+    public function __construct($person, $products, $fastDelivery, $orderlist)
     {
         $this->customer=$person;
         $this->products=$products;
         $this->fastDelivery=$fastDelivery;
+        $this->orderlist = $orderlist;
+
     }
     public function getProducts(): array
     {
@@ -88,9 +96,10 @@ class Order
 
     public function calculateTotalPrice()
     {
+
         $totalPrice = 0;
         foreach($this->products as $productNumber => $product) {
-            $totalPrice +=$this->products[$productNumber]['price'];
+            $totalPrice += $this->orderlist[$productNumber]['price'];
         }
         if ($this->fastDelivery){
             $totalPrice +=2;
@@ -98,7 +107,7 @@ class Order
         return $totalPrice;
 
     }
-
+/*
     public function getDeliveryTime()
     {
         if ($this->fastDelivery){
@@ -109,6 +118,7 @@ class Order
         };
         return $deliveryTime;
     }
+ */
 }
 
 class Person
@@ -119,8 +129,8 @@ class Person
     public function __construct(string $email, stdClass $address)
     {
         $this->email=$email;
-       // $this->address = $address;
-
+        $this->address = new stdClass();
+        $this->address = $address;
     }
 
     /**
@@ -160,7 +170,7 @@ class Request{
     private array $input;
     private string $email;
     private stdClass $address;
-    private stdClass $products;
+    private array $products;
     private bool $fastDelivery=false;
     private array $errors=[];
 
@@ -168,10 +178,12 @@ class Request{
     public function __construct($input){
         $this->input=$input;
         $this->address = new stdClass();
+
     }
 
     public function validate()
     {
+
         if (!filter_var($this->input['email'], FILTER_VALIDATE_EMAIL)) {
            array_push($this->errors, 'Please, check your email address.');
         }
@@ -205,15 +217,19 @@ class Request{
             $this->address->zipcode=$this->input['zipcode'];
         }
 
-        if (count($this->input['products']) == 0){
+        if (count($this->input['products']) === 0){
             array_push($this->errors, 'Please, chose at least one product.');
         }
         else{
             $this->products=$this->input['products'];
-        }
 
-        if ($this->input['deliveryTime'] != NULL){
+        }
+        if(array_key_exists('deliveryTime' ,$this->input)){
             $this->fastDelivery=true;
+        }
+        else
+        {
+            $this->fastDelivery=false;
         }
 
         return !$this->hasErrors();
@@ -241,28 +257,21 @@ class Request{
     }
 }
 
-
-
-/*' <div class="alert alert-success">
-            Your order is sumbited </br> Your address is: ' .$_POST['street'] . ' ' .$_POST['streetnumber'] . ' ' . ' ' .$_POST['city']
-.'</br>Your email is: ' .$_POST['email']
-.'</br> You have chosen: ' .implode(" , ", $orderList)
-.'</br> The total price is: &euro;' .number_format($totalPrice, 2)
-.'</br>Estimated delivery time: ' .$deliveryTime
-.'</div>';
-
-ERROR
- return '<div class="alert alert-danger">' . implode(" </br> ", $invalidFields) .'</div>';
-*/
 if (!empty($_POST)) {
     $request = new Request($_POST);
 
     if($request->validate()){
+
+
         $person = new Person($request->data('email'), $request->data('address'));
-        $order = new Order($person, $request->data('products'), $request->data('fastDelivery'));
-        $totalPrice = $order->calculateTotalPrice();
-        $deliveryTime =$order->getDeliveryTime();
-        $orderMessage = ' <div class="alert alert-success">
+
+       $order = new Order($person, $request->data('products'), $request->data('fastDelivery'), $orderlist);
+        var_dump('<pre>');
+        var_dump($order->calculateTotalPrice());
+        var_dump('</pre>');
+    //    $totalPrice = $order->calculateTotalPrice();
+      //  $deliveryTime =$order->getDeliveryTime();
+   /*     $orderMessage = ' <div class="alert alert-success">
                           Your order is sumbited </br> Your address is: ' .$person->getAddress()->street . ' ' .$person->getAddress()->streetnumber . ' ' . ' ' .$person->getAddress()->city
                           .'</br>Your email is: ' .$person->getEmail()
                         .'</br> You have chosen: ' .implode(" , ", $order->getProducts())
@@ -270,49 +279,15 @@ if (!empty($_POST)) {
                         .'</br>Estimated delivery time: ' .$order->getDeliveryTime()
                         .'</div>';
 
-
+*/
     }
     else{
         $errors = $request->errors();
-    }
 
-    //$confirmationMessage = handleForm(${$order}, $deliveryTime);
+    }
 }
-//setcookie("price",  '', time() + (10 * 365 * 24 * 60 * 60), "/"); //  clean a coockies
-//setcookie("orders",  '', time() + (10 * 365 * 24 * 60 * 60), "/");
-
-function getMostPopularItem(){
-    if( !isset($_COOKIE['orders'])){
-        return;
-    };
-    $orderedItems = (explode(',', $_COOKIE['orders']));
-    $vals = array_count_values($orderedItems); //Counts all the (same) values of an array
-
-    $mostPopularItem = '';
-    $highestRate = 0;
-    foreach ($vals as $key => $val){
-
-        if ($val > $highestRate){
-            $highestRate = $val;
-            $mostPopularItem = $key;
-
-        }
-    }
-
-    return '<h5 class="popular-order"> Most popular item, you have odered is: ' .$mostPopularItem . '.</h5>
-            <h5 class="popular-order">You have ordered it '. $highestRate .' times. </h5>';
 
 
-};
 
 require 'form-view.php';
-//test
-$arr = [];
 
-function addValue(&$array){
-    $array[] = 'string';
-}
-
-addValue($arr);
-
-//var_dump($arr);

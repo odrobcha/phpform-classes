@@ -25,17 +25,17 @@
         <nav>
             <ul class="nav">
                  <li class="nav-item">
-                    <a class="nav-link btn' . ($order == 'drinks' ? ' btn-primary' : "")  .' " href="index.php?order=drinks">Order drinks</a>
+                    <a class="nav-link btn' . ($orderlist == 'drinks' ? ' btn-primary' : "")  .' " href="index.php?orderlist=drinks">Order drinks</a>
                 </li>
                 <li class="nav-item">
-                    <a class="nav-link btn'. ($order == 'food' ? ' btn-primary' : "") .' " href="index.php?order=food">Order food</a>
+                    <a class="nav-link btn'. ($orderlist == 'food' ? ' btn-primary' : "") .' " href="index.php?orderlist=food">Order food</a>
                 </li>
                 
             </ul>
         </nav>
     ';
     ?>
-    <?php echo getMostPopularItem() ?>
+
     <form method="post">
 
         <div class="form-row">
@@ -89,7 +89,7 @@
 
         <fieldset>
             <legend>Products</legend>
-            <?php foreach (${$order} as $i => $product): ?>
+            <?php foreach ($orderlist as $i => $product): ?>
                 <label>
                     <?php // <?p= is equal to <?php echo ?>
                     <input type="checkbox"
@@ -103,7 +103,7 @@
         </fieldset>
         <div class="form-row">
             <div class="form-group col-md-6">
-                <h5>Estimated delivery date: <?php echo $deliveryTime ?></h5>
+                <h5>Estimated delivery date: <?php ?></h5>
 
             </div>
         </div>
@@ -120,7 +120,7 @@
     </form>
 
     <footer>
-        You already ordered <strong>&euro; <?php echo number_format((totalValue(${$order},$deliveryTime) ?? 0.00), 2) ?></strong> in food and drinks.
+        You already ordered <strong>&euro; <?php  ?></strong> in food and drinks.
 
     </footer>
 </div>
