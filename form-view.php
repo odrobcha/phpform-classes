@@ -25,10 +25,10 @@
         <nav>
             <ul class="nav">
                  <li class="nav-item">
-                    <a class="nav-link btn' . ($orderlist == 'drinks' ? ' btn-primary' : "")  .' " href="index.php?orderlist=drinks">Order drinks</a>
+                    <a class="nav-link btn' . ($chosenproducts == 'drinks' ? ' btn-primary' : "")  .' " href="index.php?orderlist=drinks">Order drinks</a>
                 </li>
                 <li class="nav-item">
-                    <a class="nav-link btn'. ($orderlist == 'food' ? ' btn-primary' : "") .' " href="index.php?orderlist=food">Order food</a>
+                    <a class="nav-link btn'. ($chosenproducts == 'food' ? ' btn-primary' : "") .' " href="index.php?orderlist=food">Order food</a>
                 </li>
                 
             </ul>

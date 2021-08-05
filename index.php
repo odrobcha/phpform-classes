@@ -6,9 +6,9 @@
 // This line makes PHP behave in a more strict way
 declare(strict_types=1);
 
-ini_set('display_errors', '1');
-ini_set('display_startup_errors', '1');
-error_reporting(E_ALL);
+//ini_set('display_errors', '1');
+//ini_set('display_startup_errors', '1');
+//error_reporting(E_ALL);
 
 // We are going to use session variables so we need to enable sessions
 session_start();
@@ -58,12 +58,15 @@ class Products
 $productslist = new Products();
 
 $orderlist =  $productslist->drinks();
+$chosenproducts='drinks';
 
 if($_GET['orderlist'] == 'food'){
     $orderlist= $productslist->food();
+    $chosenproducts='food';
 }
 if($_GET['orderlist'] == 'drinks'){
     $orderlist= $productslist->drinks();
+    $chosenproducts='drinks';
 }
 class Order
 {
@@ -107,18 +110,27 @@ class Order
         return $totalPrice;
 
     }
-/*
+    public function getOrderedItems(){
+        $orderedItems=[];
+        foreach($this->products as $productNumber => $product) {
+            array_push($orderedItems, $this->orderlist[$productNumber]['name']);
+        }
+        return$orderedItems;
+    }
+
     public function getDeliveryTime()
     {
         if ($this->fastDelivery){
-            $deliveryTime = date('m/d/Y h:i a', time()+ (2 * 24 * 60 * 60));
+            $deliveryTime = date('d/m/Y h:i a', time()+ (2 * 24 * 60 * 60));
 
         } else {
-            $deliveryTime = date('m/d/Y h:i a', time()+ (7 * 24 * 60 * 60));
+            $deliveryTime = date('d/m/Y h:i a', time()+ (7 * 24 * 60 * 60));
         };
         return $deliveryTime;
     }
- */
+
+
+
 }
 
 class Person
@@ -266,23 +278,19 @@ if (!empty($_POST)) {
         $person = new Person($request->data('email'), $request->data('address'));
 
        $order = new Order($person, $request->data('products'), $request->data('fastDelivery'), $orderlist);
-        var_dump('<pre>');
-        var_dump($order->calculateTotalPrice());
-        var_dump('</pre>');
-    //    $totalPrice = $order->calculateTotalPrice();
-      //  $deliveryTime =$order->getDeliveryTime();
-   /*     $orderMessage = ' <div class="alert alert-success">
+       $orderMessage = ' <div class="alert alert-success">
                           Your order is sumbited </br> Your address is: ' .$person->getAddress()->street . ' ' .$person->getAddress()->streetnumber . ' ' . ' ' .$person->getAddress()->city
                           .'</br>Your email is: ' .$person->getEmail()
-                        .'</br> You have chosen: ' .implode(" , ", $order->getProducts())
+                        .'</br> You have chosen: ' .implode(" , ", $order->getOrderedItems())
                         .'</br> The total price is: &euro;' .number_format($order->calculateTotalPrice(), 2)
                         .'</br>Estimated delivery time: ' .$order->getDeliveryTime()
                         .'</div>';
 
-*/
+
     }
     else{
         $errors = $request->errors();
+        $orderMessage = '<div class="alert alert-danger">' . implode(" </br> ", $errors ) .'</div>';
 
     }
 }
