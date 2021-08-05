@@ -120,7 +120,7 @@
     </form>
 
     <footer>
-        You already ordered <strong>&euro; <?php  ?></strong> in food and drinks.
+        You already ordered <strong>&euro; <?php  echo $totalPrice ?></strong> in food and drinks.
 
     </footer>
 </div>

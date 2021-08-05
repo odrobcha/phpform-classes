@@ -14,6 +14,9 @@ declare(strict_types=1);
 session_start();
 
 $orderMessage = "";
+
+$totalPrice=0;
+
 if(!empty($_GET)){
     foreach ($_GET as $key=>$get){
         if(!in_array($key, ['orderlist'])){ //to send only allowed keys in $_GET
@@ -68,6 +71,7 @@ if($_GET['orderlist'] == 'drinks'){
     $orderlist= $productslist->drinks();
     $chosenproducts='drinks';
 }
+
 class Order
 {
     private Person $customer;
@@ -272,13 +276,14 @@ class Request{
 if (!empty($_POST)) {
     $request = new Request($_POST);
 
+
     if($request->validate()){
 
-
         $person = new Person($request->data('email'), $request->data('address'));
+        $order = new Order($person, $request->data('products'), $request->data('fastDelivery'), $orderlist);
 
-       $order = new Order($person, $request->data('products'), $request->data('fastDelivery'), $orderlist);
-       $orderMessage = ' <div class="alert alert-success">
+        $totalPrice=$order->calculateTotalPrice();
+        $orderMessage = ' <div class="alert alert-success">
                           Your order is sumbited </br> Your address is: ' .$person->getAddress()->street . ' ' .$person->getAddress()->streetnumber . ' ' . ' ' .$person->getAddress()->city
                           .'</br>Your email is: ' .$person->getEmail()
                         .'</br> You have chosen: ' .implode(" , ", $order->getOrderedItems())
