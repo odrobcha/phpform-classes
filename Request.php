@@ -71,13 +71,12 @@ class Request{
 
     }
 
-    public function data(?string $param = null)
+    public function data(?string $param = null) //function that makes easy call special key:value
     {
         $data = ['email' => $this->email, 'address' => $this->address, 'products' => $this->products, 'fastDelivery' => $this->fastDelivery];
         if(!is_null($param) and in_array($param, array_keys($data))) {
             return $data[$param];
         }
-
         return $data;
     }
 

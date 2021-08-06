@@ -88,7 +88,6 @@
             <legend>Products</legend>
             <?php foreach ($orderlist as $i => $product): ?>
                 <label>
-                    <?php // <?p= is equal to <?php echo ?>
                     <input type="checkbox"
                            value="1"
                            name="products[<?php echo $i ?>]"/>
@@ -116,7 +115,7 @@
     </form>
 
     <footer>
-        You already ordered <strong>&euro; <?php  echo  $order->calculateTotalPrice() ?? '0' ?></strong> in food and drinks.
+        You already ordered <strong>&euro; <?php echo isset($order) ? $order->getFormatedPrice() : '0.00'; ?></strong> in food and drinks.
 
     </footer>
 </div>

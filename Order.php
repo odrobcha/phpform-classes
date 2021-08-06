@@ -12,6 +12,7 @@ class Order
     private bool $fastDelivery;
     private array $orderlist;
 
+
     public function __construct(Person $person, array $products, bool $fastDelivery, array $orderlist)
     {
         $this->customer=$person;
@@ -43,6 +44,13 @@ class Order
         return $totalPrice;
 
     }
+
+    public function getFormatedPrice()
+    {
+        $formatedPrice = number_format($this->calculateTotalPrice(), 2);
+        return $formatedPrice;
+
+    }
     public function getOrderedItems(){
         $orderedItems=[];
         foreach($this->products as $productNumber => $product) {
@@ -53,12 +61,10 @@ class Order
 
     public function getDeliveryTime()
     {
+        $deliveryTime = date('d/m/Y h:i a', time()+ (7 * 24 * 60 * 60));
         if ($this->fastDelivery){
             $deliveryTime = date('d/m/Y h:i a', time()+ (2 * 24 * 60 * 60));
-
-        } else {
-            $deliveryTime = date('d/m/Y h:i a', time()+ (7 * 24 * 60 * 60));
-        };
+        }
         return $deliveryTime;
     }
 }
