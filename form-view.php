@@ -9,7 +9,7 @@
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
     <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" type="text/css"
           rel="stylesheet"/>
-    <link href = styles.css rel="stylesheet"/>
+    <link href = styles/styles.css rel="stylesheet"/>
     <title>Your fancy store</title>
 </head>
 <body>

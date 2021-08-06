@@ -1,7 +1,7 @@
 body{
     max-width: 100vw;
     min-height: 100vh;
-    background: url(bg.jpg) no-repeat;
+    background: url(../img/bg.jpg) no-repeat;
     /* Keep the inherited background full size. */
     background-attachment: fixed;
     background-size: cover;

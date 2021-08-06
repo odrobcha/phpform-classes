@@ -6,9 +6,9 @@
 // This line makes PHP behave in a more strict way
 declare(strict_types=1);
 
-ini_set('display_errors', '1');
-ini_set('display_startup_errors', '1');
-error_reporting(E_ALL);
+//ini_set('display_errors', '1');
+//ini_set('display_startup_errors', '1');
+//error_reporting(E_ALL);
 
 session_start();
 if(!empty($_GET)){
@@ -24,7 +24,7 @@ if(!empty($_GET)){
 }
 
 $orderMessage = "";
-require ('Products.php');
+require('classes/Products.php');
 $orderlist =  Products::drinks();
 $chosenproducts='drinks';
 
@@ -37,9 +37,9 @@ if($_GET['orderlist'] == 'drinks'){
     $chosenproducts='drinks';
 }
 
-require ('Order.php');
-require ('Person.php');
-require ('Request.php');
+require('classes/Order.php');
+require('classes/Person.php');
+require('classes/Request.php');
 
 
 if (!empty($_POST)) {
