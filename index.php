@@ -25,16 +25,15 @@ if(!empty($_GET)){
 
 $orderMessage = "";
 require ('Products.php');
-$productslist = new Products();
-$orderlist =  $productslist->drinks();
+$orderlist =  Products::drinks();
 $chosenproducts='drinks';
 
 if($_GET['orderlist'] == 'food'){
-    $orderlist= $productslist->food();
+    $orderlist= Products::food();
     $chosenproducts='food';
 }
 if($_GET['orderlist'] == 'drinks'){
-    $orderlist= $productslist->drinks();
+    $orderlist= Products::drinks();
     $chosenproducts='drinks';
 }
 
