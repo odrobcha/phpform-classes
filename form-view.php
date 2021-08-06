@@ -41,7 +41,7 @@
         <div class="form-row">
             <div class="form-group col-md-6">
                 <label for="email">E-mail:</label>
-                <input type="email" id="email" name="email" class="form-control" value="<?php echo $_POST['email'] ?? '' ?>"/>
+                <input type="email" id="email" name="email" class="form-control"/>
             </div>
             <div></div>
         </div>
@@ -56,15 +56,14 @@
                            name="street"
                            id="street"
                            class="form-control"
-                           value="<?php echo $_SESSION['street'] ?? '' ?>"/>
+                    />
                 </div>
                 <div class="form-group col-md-6">
                     <label for="streetnumber">Street number:</label>
                     <input type="text"
                            id="streetnumber"
                            name="streetnumber"
-                           class="form-control"
-                           value="<?php echo  $_SESSION["streetnumber"] ?? '' ?>"/>
+                           class="form-control"/>
                 </div>
             </div>
             <div class="form-row">
@@ -73,16 +72,14 @@
                     <input type="text"
                            id="city"
                            name="city"
-                           class="form-control"
-                           value="<?php echo $_SESSION['city'] ?? '' ?>"/>
+                           class="form-control"/>
                 </div>
                 <div class="form-group col-md-6">
                     <label for="zipcode">Zipcode</label>
                     <input type="text"
                            id="zipcode"
                            name="zipcode"
-                           class="form-control"
-                           value="<?php echo $_SESSION['zipcode'] ?? '' ?>"/>
+                           class="form-control"/>
                 </div>
             </div>
         </fieldset>
@@ -94,8 +91,7 @@
                     <?php // <?p= is equal to <?php echo ?>
                     <input type="checkbox"
                            value="1"
-                           name="products[<?php echo $i ?>]"
-                        <?php echo isset($_POST['products'][$i]) ? 'checked ':''; ?>/>
+                           name="products[<?php echo $i ?>]"/>
                     <?php echo $product['name'] ?> - &euro; <?php echo number_format($product['price'], 2) ?>
                 </label>
                 <br />
@@ -120,7 +116,7 @@
     </form>
 
     <footer>
-        You already ordered <strong>&euro; <?php  echo $totalPrice ?></strong> in food and drinks.
+        You already ordered <strong>&euro; <?php  echo  $order->calculateTotalPrice() ?? '0' ?></strong> in food and drinks.
 
     </footer>
 </div>

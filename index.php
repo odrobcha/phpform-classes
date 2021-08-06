@@ -15,8 +15,6 @@ session_start();
 
 $orderMessage = "";
 
-$totalPrice=0;
-
 if(!empty($_GET)){
     foreach ($_GET as $key=>$get){
         if(!in_array($key, ['orderlist'])){ //to send only allowed keys in $_GET
@@ -83,7 +81,7 @@ class Order
     private bool $fastDelivery;
     private array $orderlist;
 
-    public function __construct($person, $products, $fastDelivery, $orderlist)
+    public function __construct(Person $person, array $products, bool $fastDelivery, array $orderlist)
     {
         $this->customer=$person;
         $this->products=$products;
